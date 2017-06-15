@@ -39,10 +39,13 @@ typecheck f vars expr = case (checkfun f f) of
 checkfun ::[FunctionDef p] -> [FunctionDef p] -> TypeNew p
 checkfun _ [] = T TInt
 checkfun f (h:rest) =
-  case typecheck' [(funcArg h,T (funcArgType h))] (funcBody h) of
+  case typecheck' ((funcArg h,T (funcArgType h)):toEnv f) (funcBody h) of
       TError q str               -> TError q str
       T x | x==(funcResType h)   -> checkfun f rest
       _                          -> TError (getData (funcBody h)) "Nieodpowiedni typ zwracanej wartosci"
+      where
+        toEnv f = [(funcName s, T (TArrow (funcArgType s) (funcResType s))) | s <- f]
+
 
 ----------------------------------------------------------------------
 
@@ -160,8 +163,8 @@ typecheck' env (EIf p expr0 expr1 expr2)
 -------------------------------------------------------------------------------
 
 typecheck' env (EFn p var type0 expr1) = case typecheck' ((var,T type0):env) expr1 of
-  T tp1        -> T (TArrow type0 tp1)
-  TError q str -> TError q str
+  T tp1          -> T (TArrow type0 tp1)
+  TError q str   -> TError q str
 
 -------------------------------------------------------------------------------
 
@@ -229,8 +232,8 @@ typecheck' env (EMatchL p expr0 nil (var0, var1, expr1)) = case type0 of
   TError q str          -> TError q str
   _                     -> TError p "typ list oczekiwany"
   where
-    type0    = typecheck' env expr0
-    typeNil  = typecheck' env nil
+    type0   = typecheck' env expr0
+    typeNil = typecheck' env nil
 
 ------------------------------------------------------------------------
 
@@ -353,17 +356,18 @@ myeval env (EIf p con val val1) = case myeval env con of
 myeval env (EFn p var _ expr) = Val (NClos env var expr)
 
 myeval env (EApp p expr0 expr1) = case clos of
-  Val (NClos envN var exprN)   -> case arg of
-    Val v                        -> myeval ((var,v):envN) exprN
-    NError                       -> NError
-  Val (NClosG  defs def)       -> case arg of
-    Val v                        -> myeval ((funcArg def,v):(toEnv defs defs)) (funcBody def)
-    NError                       -> NError
+  Val (NClos envN var exprN) -> case arg of
+    Val v                      -> myeval ((var,v):envN) exprN
+    NError                     -> NError
+  Val (NClosG  defs def)     -> case arg of
+    Val v                      -> myeval ((funcArg def,v):(toEnv defs defs)) (funcBody def)
+    NError                     -> NError
   where
     clos = myeval env expr0
     arg  = myeval env expr1
     toEnv [] _ = []
-    toEnv (def:defs) allDefs = ((funcName def, NClosG allDefs def):(toEnv defs allDefs))
+    toEnv (def:defs) allDefs =
+      ((funcName def, NClosG allDefs def):(toEnv defs allDefs))
 
 myeval env (EUnit p) = Val NUnit
 
