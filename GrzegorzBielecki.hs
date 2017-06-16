@@ -235,18 +235,7 @@ typecheck' env (EMatchL p expr0 nil (var0, var1, expr1)) = case type0 of
     type0   = typecheck' env expr0
     typeNil = typecheck' env nil
 
-------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Funkcja obliczająca wyrażenia
 -- Dla wywołania eval fs input e przyjmujemy, że dla każdej pary (x, v)
 -- znajdującej się w input, wartość zmiennej x wynosi v.
@@ -271,8 +260,8 @@ conv :: [(Var, Integer)] -> [FunctionDef p] -> [(Var, TypeEval p)]
 conv vars defs = ([(fst v, (NInt (snd v))) | v <- vars]
                  ++
                  [(funcName f, NClosG defs f) | f <- defs])
-----------------------------------------------------------------------
 
+----------------------------------------------------------------------
 ----------------------------------------------------------------------
 
 myeval :: [(Var,TypeEval p)] -> Expr p -> Eval p
@@ -353,6 +342,7 @@ myeval env (EIf p con val val1) = case myeval env con of
   _                 -> NError
 
 ------------------------------------------------------------------------------
+
 myeval env (EFn p var _ expr) = Val (NClos env var expr)
 
 myeval env (EApp p expr0 expr1) = case clos of
@@ -406,7 +396,6 @@ myeval env (EMatchL p expr0 nil (var0, var1, expr1)) = case res0 of
   where
     res0   = myeval env expr0
     resNil = myeval env nil
-
 
 --TYPY------------------------------------------------------------------------
 

@@ -25,7 +25,7 @@
 {-# LANGUAGE Safe #-}
 
 -- Należy zmodyfikować poniższe dwa wiersze zmieniając nazwy modułów
-import qualified MarcinDrewniakTests as Tests
+import qualified GrzegorzBieleckiTests as Tests
 import qualified GrzegorzBielecki    as Solution
 
 import System.Console.GetOpt
